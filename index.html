@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>image2 studio</title>
+    <meta name="description" content="连接任意 OpenAI 兼容图像接口的 image2 工作台" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="layout-fix.css" />
+    <link rel="stylesheet" href="lightbox.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <div class="brand-name">image2 <span>studio</span></div>
+            <div class="brand-subtitle">OpenAI-compatible image workspace</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div id="connectionBadge" class="connection-badge idle"><span class="status-dot"></span><span id="connectionText">未连接</span></div>
+          <button class="icon-button" id="clearSession" type="button" title="清空历史记录" aria-label="清空历史记录"><i data-lucide="trash-2"></i></button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="control-rail">
+          <section class="panel-section connection-section">
+            <div class="section-heading"><span class="eyebrow">01 / CONNECTION</span><span class="secure-label"><i data-lucide="shield-check"></i> 仅浏览器</span></div>
+            <h1>连接你的模型</h1>
+            <p class="section-note">请求将从此浏览器直接发送到你提供的地址。</p>
+
+            <label class="field-label" for="baseUrl">Base URL</label>
+            <div class="input-with-prefix"><span>↗</span><input id="baseUrl" type="url" autocomplete="url" placeholder="https://api.example.com/v1" value="https://api.openai.com/v1" /></div>
+
+            <label class="field-label" for="apiKey">API key</label>
+            <div class="secret-input"><input id="apiKey" type="password" autocomplete="off" placeholder="sk-..." /><button type="button" id="toggleKey" title="显示或隐藏 API key" aria-label="显示或隐藏 API key"><i data-lucide="eye"></i></button></div>
+            <label class="check-row"><input id="rememberKey" type="checkbox" /><span>在本机记住 API key</span></label>
+
+            <label class="field-label" for="model">Image model</label>
+            <div class="model-input"><input id="model" type="text" value="image2" placeholder="image2" /><button type="button" id="fetchModels" title="从 endpoint 获取模型列表" aria-label="从 endpoint 获取模型列表"><i data-lucide="list-restart"></i></button></div>
+            <div id="modelList" class="model-list" hidden></div>
+
+            <button id="testConnection" class="button secondary full" type="button"><i data-lucide="radio"></i><span>测试连接</span></button>
+            <div id="connectionMessage" class="field-message" role="status"></div>
+          </section>
+
+          <section class="panel-section settings-section">
+            <div class="section-heading"><span class="eyebrow">02 / OUTPUT</span></div>
+            <div class="setting-grid">
+              <div>
+                <label class="field-label" for="size">尺寸</label>
+                <select id="size"><option value="1024x1024">方形 · 1024</option><option value="1536x1024">横向 · 1536</option><option value="1024x1536">纵向 · 1536</option><option value="auto">自动</option></select>
+              </div>
+              <div>
+                <label class="field-label" for="quality">质量</label>
+                <select id="quality"><option value="auto">Auto</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+              </div>
+            </div>
+            <div class="setting-row"><label class="field-label" for="count">生成数量</label><div class="stepper"><button type="button" data-step="-1" aria-label="减少数量">−</button><input id="count" type="number" min="1" max="4" value="1" /><button type="button" data-step="1" aria-label="增加数量">+</button></div></div>
+            <div class="setting-row"><label class="field-label" for="responseFormat">返回格式</label><select id="responseFormat"><option value="b64_json">Base64（推荐）</option><option value="url">URL</option></select></div>
+            <label class="check-row auto-download-row"><input id="autoDownload" type="checkbox" checked /><span>生成后自动下载</span></label>
+          </section>
+
+          <footer class="rail-footer"><span>image2 studio</span><span class="mono">v0.1</span></footer>
+        </aside>
+
+        <section class="canvas-area">
+          <div class="canvas-header"><div><span class="eyebrow">03 / PROMPT</span><h2>描述你想看到的画面</h2></div><button id="examplePrompt" class="text-button" type="button"><i data-lucide="wand-sparkles"></i> 填入示例</button></div>
+          <div class="prompt-wrap"><textarea id="prompt" rows="4" placeholder="一只戴着黄色雨衣的柴犬，站在东京雨夜的十字路口，霓虹倒影，电影感构图……"></textarea><div class="prompt-meta"><span id="promptCount">0 / 4000</span><span>⌘ + Enter 生成</span></div></div>
+          <div class="prompt-chips"><button type="button" class="chip" data-prompt="editorial still life, soft window light, tactile details">Editorial</button><button type="button" class="chip" data-prompt="architectural visualization, brutalist concrete, overcast sky">Architecture</button><button type="button" class="chip" data-prompt="surreal botanical study, ink and gouache, quiet palette">Botanical</button></div>
+
+          <div class="generate-bar"><div class="request-summary"><span class="summary-model" id="summaryModel">image2</span><span class="summary-separator">·</span><span id="summarySize">1024 × 1024</span><span class="summary-separator">·</span><span id="summaryCount">1 image</span></div><button id="generate" class="button primary" type="button"><i data-lucide="sparkles"></i><span>生成图像</span><span class="shortcut">⌘↵</span></button></div>
+          <div id="canvasMessage" class="canvas-message" role="status"></div>
+
+          <section class="results-section"><div class="results-heading"><div><span class="eyebrow">04 / LIBRARY</span><h2>历史记录</h2></div><span id="resultCount" class="result-count">0 images</span></div><div id="gallery" class="gallery"><div id="emptyState" class="empty-state"><div class="empty-icon"><i data-lucide="image"></i></div><h3>还没有历史记录</h3><p>生成的图片会自动保存在此浏览器中。</p></div></div></section>
+        </section>
+      </main>
+    </div>
+    <div id="lightbox" class="lightbox" hidden role="dialog" aria-modal="true" aria-label="放大图片预览">
+      <button id="closeLightbox" class="lightbox-close" type="button" title="关闭预览" aria-label="关闭预览"><i data-lucide="x"></i></button>
+      <img id="lightboxImage" src="" alt="放大图片" />
+    </div>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+/* Keep the label and title stacked inside heading groups. */
+.canvas-header > div,
+.results-heading > div {
+  display: block;
+}
