@@ -1,5 +1,7 @@
 # image2 studio
 
+![image2 studio banner](assets/home-banner.png)
+
 一个无构建依赖的纯前端 image2 工作台，兼容 OpenAI Images API 格式。
 
 ## 运行
